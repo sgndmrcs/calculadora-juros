@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Parcelamento</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="container">
+    <h1>Calculadora de Parcelamento</h1>
+
+    <form id="calcForm" novalidate>
+      <div>
+        <label for="valorProduto">Valor do Produto (R$):</label>
+        <input type="number" id="valorProduto" name="valorProduto" min="0" step="0.01" required placeholder="Ex.: 3997,00"/>
+      </div>
+
+      <div>
+        <label for="valorEntrada">Valor de Entrada (R$):</label>
+        <input type="number" id="valorEntrada" name="valorEntrada" min="0" step="0.01" required placeholder="Ex.: 500,00"/>
+        <p class="muted">A entrada será abatida do valor do produto antes do cálculo dos juros.</p>
+      </div>
+
+      <div>
+        <label for="taxaJuros">Taxa de Juros (%):</label>
+        <input type="number" id="taxaJuros" name="taxaJuros" min="0" step="0.01" required placeholder="Ex.: 2,99"/>
+        <p class="muted">Informe a taxa total aplicada ao saldo.</p>
+      </div>
+
+      <div>
+        <label for="parcelas">Número de Parcelas:</label>
+        <input type="number" id="parcelas" name="parcelas" min="1" step="1" required placeholder="Ex.: 12"/>
+      </div>
+
+      <button type="submit">Calcular Parcelas</button>
+      
+      <div id="resultado" aria-live="polite"></div>
+    </form>
+  </div>
+
+  <script>
+    // formatador em Real
+    const fmtBRL = new Intl.NumberFormat('pt-BR', {
+      style: 'currency', currency: 'BRL'
+    });
+
+    const form = document.getElementById('calcForm');
+    const resultado = document.getElementById('resultado');
+
+    function limparErros() {
+      document
+        .querySelectorAll('.error, .msg-erro')
+        .forEach(el => el.classList.contains('msg-erro') ? el.remove() : el.classList.remove('error'));
+    }
+
+    function erroNo(campo, msg) {
+      campo.classList.add('error');
+      const p = document.createElement('p');
+      p.className = 'msg-erro';
+      p.textContent = msg;
+      campo.insertAdjacentElement('afterend', p);
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      limparErros();
+      resultado.innerHTML = '';
+
+      const valorProduto = parseFloat(document.getElementById('valorProduto').value.replace(',', '.'));
+      const valorEntrada = parseFloat(document.getElementById('valorEntrada').value.replace(',', '.'));
+      const taxa = parseFloat(document.getElementById('taxaJuros').value.replace(',', '.'));
+      const parcelas = parseInt(document.getElementById('parcelas').value, 10);
+
+      // validações básicas
+      let ok = true;
+      if (isNaN(valorProduto) || valorProduto <= 0) {
+        ok = false; erroNo(document.getElementById('valorProduto'), 'Informe um valor de produto válido.');
+      }
+      if (isNaN(valorEntrada) || valorEntrada < 0) {
+        ok = false; erroNo(document.getElementById('valorEntrada'), 'Entrada inválida.');
+      }
+      if (valorEntrada > valorProduto) {
+        ok = false; erroNo(document.getElementById('valorEntrada'), 'A entrada não pode ser maior que o valor do produto.');
+      }
+      if (isNaN(taxa) || taxa < 0) {
+        ok = false; erroNo(document.getElementById('taxaJuros'), 'Taxa de juros inválida.');
+      }
+      if (isNaN(parcelas) || parcelas < 1) {
+        ok = false; erroNo(document.getElementById('parcelas'), 'Número de parcelas inválido.');
+      }
+
+      if (!ok) return;
+
+      const taxaDecimal = taxa / 100;
+      const saldo = valorProduto - valorEntrada;
+      const valorParcela = ((saldo) * (1 + taxaDecimal)) / parcelas;
+      const totalComJuros = valorParcela * parcelas;
+      const jurosTotal = totalComJuros - saldo;
+
+      resultado.innerHTML = `
+        <div class="resultado-destacado">
+          <strong>${parcelas}x de ${fmtBRL.format(valorParcela)}</strong><br/>
+          <span class="muted">
+            Saldo após entrada: ${fmtBRL.format(saldo)} •
+            Juros totais: ${fmtBRL.format(jurosTotal)} •
+            Total a pagar: ${fmtBRL.format(totalComJuros)}
+          </span>
+        </div>
+      `;
+
+      resultado.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  </script>
+</body>
+</html>
