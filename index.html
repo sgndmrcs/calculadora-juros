@@ -11,10 +11,28 @@
     <h1>Calculadora de Parcelamento</h1>
 
     <form id="calcForm" novalidate>
-      <div>
-        <label for="valorProduto">Valor do Produto (R$):</label>
-        <input type="number" id="valorProduto" name="valorProduto" min="0" step="0.01" required placeholder="Ex.: 3997,00"/>
-      </div>
+      <fieldset>
+        <legend>Origem do Valor do Produto</legend>
+
+        <label for="origemValor">Escolha a origem:</label>
+        <select id="origemValor" name="origemValor">
+          <option value="manual" selected>Valor manual</option>
+          <option value="catalogo">Catálogo (Google Sheets)</option>
+        </select>
+
+        <div id="campoManual" class="origem-campo">
+          <label for="valorProdutoManual">Valor do Produto (R$):</label>
+          <input type="number" id="valorProdutoManual" name="valorProdutoManual" min="0" step="0.01" required placeholder="Ex.: 3997,00"/>
+        </div>
+
+        <div id="campoCatalogo" class="origem-campo" hidden>
+          <label for="produtoPlanilha">Produto do catálogo:</label>
+          <select id="produtoPlanilha" name="produtoPlanilha" disabled>
+            <option value="">Selecione um produto</option>
+          </select>
+          <p id="statusCatalogo" class="muted" aria-live="polite"></p>
+        </div>
+      </fieldset>
 
       <div>
         <label for="valorEntrada">Valor de Entrada (R$):</label>
@@ -47,6 +65,97 @@
 
     const form = document.getElementById('calcForm');
     const resultado = document.getElementById('resultado');
+    const origemValor = document.getElementById('origemValor');
+    const produtoPlanilha = document.getElementById('produtoPlanilha');
+    const valorProdutoManual = document.getElementById('valorProdutoManual');
+    const campoCatalogo = document.getElementById('campoCatalogo');
+    const campoManual = document.getElementById('campoManual');
+    const statusCatalogo = document.getElementById('statusCatalogo');
+
+    const PLANILHA_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ9Q6g7xyPjdJawVSKuGInxjeRGna43EIBgzHuLlHotE5_m7V6czS4_iFqqpwYBFvTo95OfzmiSnJeA/pub?output=csv';
+    let catalogoCarregado = false;
+
+    async function carregarProdutosCatalogo() {
+      if (catalogoCarregado) return;
+
+      statusCatalogo.textContent = 'Carregando produtos…';
+      produtoPlanilha.innerHTML = '<option value="">Carregando…</option>';
+      produtoPlanilha.disabled = true;
+
+      try {
+        const resposta = await fetch(PLANILHA_URL);
+        if (!resposta.ok) {
+          throw new Error('Não foi possível carregar o catálogo.');
+        }
+
+        const csv = await resposta.text();
+        const linhas = csv.trim().split(/\r?\n/).filter(Boolean);
+        const itens = linhas.slice(1); // remove cabeçalho
+
+        produtoPlanilha.innerHTML = '<option value="">Selecione um produto</option>';
+
+        itens.forEach(linha => {
+          const delimitador = linha.includes(';') ? ';' : ',';
+          const colunas = linha.split(delimitador);
+          const nome = (colunas[0] || '').trim();
+          const precoBruto = (colunas[1] || '').trim();
+          const precoNormalizado = precoBruto.replace(/[^0-9,.-]/g, '').replace(',', '.');
+          const preco = parseFloat(precoNormalizado);
+
+          if (!nome || Number.isNaN(preco)) {
+            return;
+          }
+
+          const option = document.createElement('option');
+          option.value = nome;
+          option.dataset.preco = String(preco);
+          option.textContent = `${nome} — ${fmtBRL.format(preco)}`;
+          produtoPlanilha.appendChild(option);
+        });
+
+        if (produtoPlanilha.options.length === 1) {
+          statusCatalogo.textContent = 'Nenhum item disponível no catálogo.';
+        } else {
+          statusCatalogo.textContent = '';
+        }
+
+        produtoPlanilha.disabled = produtoPlanilha.options.length === 1;
+        catalogoCarregado = true;
+      } catch (erro) {
+        statusCatalogo.textContent = erro.message || 'Ocorreu um erro ao carregar a planilha.';
+        produtoPlanilha.innerHTML = '<option value="">Erro ao carregar</option>';
+        produtoPlanilha.disabled = true;
+      }
+    }
+
+    function atualizarOrigemValor() {
+      const origem = origemValor.value;
+      limparErros();
+      resultado.innerHTML = '';
+
+      if (origem === 'catalogo') {
+        campoCatalogo.hidden = false;
+        campoManual.hidden = true;
+        valorProdutoManual.value = '';
+        valorProdutoManual.required = false;
+        valorProdutoManual.disabled = true;
+        produtoPlanilha.disabled = true;
+        produtoPlanilha.required = true;
+        carregarProdutosCatalogo();
+      } else {
+        campoCatalogo.hidden = true;
+        campoManual.hidden = false;
+        produtoPlanilha.value = '';
+        produtoPlanilha.disabled = true;
+        produtoPlanilha.required = false;
+        valorProdutoManual.disabled = false;
+        valorProdutoManual.required = true;
+        valorProdutoManual.value = '';
+      }
+    }
+
+    origemValor.addEventListener('change', atualizarOrigemValor);
+    atualizarOrigemValor();
 
     function limparErros() {
       document
@@ -67,15 +176,30 @@
       limparErros();
       resultado.innerHTML = '';
 
-      const valorProduto = parseFloat(document.getElementById('valorProduto').value.replace(',', '.'));
+      const origem = origemValor.value;
+      let valorProduto = NaN;
+
+      if (origem === 'catalogo') {
+        const opcaoSelecionada = produtoPlanilha.selectedOptions[0];
+        if (opcaoSelecionada && opcaoSelecionada.dataset.preco) {
+          valorProduto = parseFloat(opcaoSelecionada.dataset.preco);
+        }
+      } else {
+        valorProduto = parseFloat(valorProdutoManual.value.replace(',', '.'));
+      }
       const valorEntrada = parseFloat(document.getElementById('valorEntrada').value.replace(',', '.'));
       const taxa = parseFloat(document.getElementById('taxaJuros').value.replace(',', '.'));
       const parcelas = parseInt(document.getElementById('parcelas').value, 10);
 
       // validações básicas
       let ok = true;
-      if (isNaN(valorProduto) || valorProduto <= 0) {
-        ok = false; erroNo(document.getElementById('valorProduto'), 'Informe um valor de produto válido.');
+      if (Number.isNaN(valorProduto) || valorProduto <= 0) {
+        ok = false;
+        if (origem === 'catalogo') {
+          erroNo(produtoPlanilha, 'Selecione um produto válido.');
+        } else {
+          erroNo(valorProdutoManual, 'Informe um valor de produto válido.');
+        }
       }
       if (isNaN(valorEntrada) || valorEntrada < 0) {
         ok = false; erroNo(document.getElementById('valorEntrada'), 'Entrada inválida.');
