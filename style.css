@@ -42,23 +42,52 @@ body{
   margin-bottom: 28px;
 }
 
-/* Form */
+/* Form Layout */
 form#calcForm{
-  display: grid;
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-form#calcForm > div{
-  display: grid;
+/* Agrupamentos (Divs e Fieldsets) */
+form#calcForm > div, 
+fieldset {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
+  border: none; /* Remove borda padrão do fieldset */
+  padding: 0;
+  margin: 0;
+}
+
+/* Estilo específico para o Fieldset (Agrupamento visual) */
+fieldset {
+  background: #f8fafc; /* Fundo leve para destacar a seção */
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary);
+  margin-bottom: 12px;
+  padding-right: 10px; /* Espaço caso fique sobre a borda */
 }
 
 label{
   font-weight: 700;
   font-size: 16px;
+  color: var(--text);
 }
 
-input[type="number"]{
+/* Inputs e Selects (Estilo Unificado) */
+input[type="number"],
+input[type="text"],
+select {
   width: 100%;
   padding: 14px 16px;
   border: 1.5px solid #e5e7eb;
@@ -66,17 +95,36 @@ input[type="number"]{
   font-size: 16px;
   transition: border-color .2s, box-shadow .2s;
   background: #fff;
+  font-family: inherit;
+  color: var(--text);
+  appearance: none; /* Remove seta padrão feia do navegador */
+  /* Recoloca uma seta customizada no select (opcional, mas recomendado) */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
 }
 
-input[type="number"]:focus{
+/* Remove a seta de background dos inputs que não são select */
+input[type="number"], input[type="text"] {
+  background-image: none;
+}
+
+input:focus, select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 6px var(--ring);
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+input:disabled, select:disabled {
+  background-color: #f1f5f9;
+  color: #94a3b8;
+  cursor: not-allowed;
 }
 
 /* Botão */
 button[type="submit"]{
-  margin-top: 6px;
+  margin-top: 8px;
   width: 100%;
   padding: 16px;
   border: 0;
@@ -92,9 +140,9 @@ button[type="submit"]{
 button[type="submit"]:hover{ background: var(--primary-600); }
 button[type="submit"]:active{ transform: translateY(1px); }
 
-/* Resultado (vem logo abaixo do botão) */
+/* Resultado */
 #resultado{
-  margin-top: 16px;     /* garante que fique imediatamente após o botão */
+  margin-top: 16px;
 }
 
 .resultado-destacado{
@@ -102,26 +150,52 @@ button[type="submit"]:active{ transform: translateY(1px); }
   border-left: 6px solid var(--success);
   background: #f0fdf4;
   color: #065f46;
-  padding: 16px;
+  padding: 20px;
   border-radius: 10px;
   font-size: 18px;
   box-shadow: var(--shadow);
+  line-height: 1.6;
 }
 
+.resultado-destacado strong {
+    font-size: 1.2em;
+    color: #14532d;
+}
+
+/* Textos auxiliares */
 .muted{
   color: var(--muted);
-  font-size: 14px;
-  margin-top: -2px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+/* Texto da Taxa de Juros Automática */
+.info-taxa {
+    font-size: 14px;
+    color: var(--success);
+    font-weight: 600;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.info-taxa::before {
+    /* Pequeno ícone ou ponto antes da taxa */
+    content: '•'; 
+    margin-right: 6px;
+    font-size: 1.5em;
+    line-height: 0;
 }
 
 /* Mensagens de erro */
 .error{
   border-color: var(--danger) !important;
-  box-shadow: 0 0 0 6px rgba(220,38,38,.12) !important;
+  box-shadow: 0 0 0 4px rgba(220,38,38,.12) !important;
 }
 
 .msg-erro{
   color: var(--danger);
-  font-size: 14px;
-  margin-top: -6px;
+  font-size: 13px;
+  margin-top: 4px;
+  font-weight: 500;
 }
