@@ -26,7 +26,7 @@ body{
 
 /* Card container */
 .container{
-  max-width: 720px;
+  max-width: 600px; /* Levemente reduzido para focar no formulário */
   margin: 0 auto;
   background: var(--card);
   border-radius: var(--radius);
@@ -36,57 +36,35 @@ body{
 
 /* Título */
 .container h1{
-  font-size: clamp(24px, 3.4vw, 40px);
+  font-size: clamp(24px, 3.4vw, 32px);
   font-weight: 800;
   text-align: center;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
+  color: var(--text);
 }
 
 /* Form Layout */
 form#calcForm{
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-/* Agrupamentos (Divs e Fieldsets) */
-form#calcForm > div, 
-fieldset {
+/* Grupos de Input (para manter visual uniforme) */
+.input-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: none; /* Remove borda padrão do fieldset */
-  padding: 0;
-  margin: 0;
-}
-
-/* Estilo específico para o Fieldset (Agrupamento visual) */
-fieldset {
-  background: #f8fafc; /* Fundo leve para destacar a seção */
-  padding: 20px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-}
-
-legend {
-  font-weight: 700;
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--primary);
-  margin-bottom: 12px;
-  padding-right: 10px; /* Espaço caso fique sobre a borda */
 }
 
 label{
   font-weight: 700;
-  font-size: 16px;
+  font-size: 15px;
   color: var(--text);
 }
 
 /* Inputs e Selects (Estilo Unificado) */
 input[type="number"],
-input[type="text"],
 select {
   width: 100%;
   padding: 14px 16px;
@@ -97,34 +75,28 @@ select {
   background: #fff;
   font-family: inherit;
   color: var(--text);
-  appearance: none; /* Remove seta padrão feia do navegador */
-  /* Recoloca uma seta customizada no select (opcional, mas recomendado) */
+  appearance: none;
+}
+
+/* Seta customizada apenas para o Select */
+select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
+  background-position: right 1rem center;
   background-repeat: no-repeat;
   background-size: 1.5em 1.5em;
+  cursor: pointer;
 }
 
-/* Remove a seta de background dos inputs que não são select */
-input[type="number"], input[type="text"] {
-  background-image: none;
-}
-
+/* Estados de Foco */
 input:focus, select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 4px var(--ring);
 }
 
-input:disabled, select:disabled {
-  background-color: #f1f5f9;
-  color: #94a3b8;
-  cursor: not-allowed;
-}
-
-/* Botão */
+/* Botão Calcular */
 button[type="submit"]{
-  margin-top: 8px;
+  margin-top: 12px;
   width: 100%;
   padding: 16px;
   border: 0;
@@ -140,7 +112,7 @@ button[type="submit"]{
 button[type="submit"]:hover{ background: var(--primary-600); }
 button[type="submit"]:active{ transform: translateY(1px); }
 
-/* Resultado */
+/* Área de Resultado */
 #resultado{
   margin-top: 16px;
 }
@@ -160,13 +132,15 @@ button[type="submit"]:active{ transform: translateY(1px); }
 .resultado-destacado strong {
     font-size: 1.2em;
     color: #14532d;
+    display: block;
+    margin-bottom: 8px;
 }
 
 /* Textos auxiliares */
 .muted{
   color: var(--muted);
   font-size: 13px;
-  margin-top: 4px;
+  margin-top: -2px;
 }
 
 /* Texto da Taxa de Juros Automática */
@@ -174,13 +148,12 @@ button[type="submit"]:active{ transform: translateY(1px); }
     font-size: 14px;
     color: var(--success);
     font-weight: 600;
-    margin-top: 6px;
+    margin-top: 4px;
     display: flex;
     align-items: center;
 }
 
 .info-taxa::before {
-    /* Pequeno ícone ou ponto antes da taxa */
     content: '•'; 
     margin-right: 6px;
     font-size: 1.5em;
